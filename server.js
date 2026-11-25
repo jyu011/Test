@@ -1,7 +1,7 @@
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
-const SqliteStore = require('better-sqlite3-session-store')(session);
+const SqliteStore = require('./lib/session-store');
 const helmet = require('helmet');
 const { db } = require('./lib/db');
 const { loadUser, csrf, flash } = require('./lib/middleware');
@@ -69,7 +69,7 @@ app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use(express.json({ limit: '50kb' }));
 
 app.use(session({
-  store: new SqliteStore({ client: db, expired: { clear: true, intervalMs: 15 * 60 * 1000 } }),
+  store: new SqliteStore(db),
   secret: process.env.SESSION_SECRET || 'dev-secret-a-changer',
   name: 'relais.sid',
   resave: false,

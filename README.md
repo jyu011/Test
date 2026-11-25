@@ -21,7 +21,7 @@ Plateforme de mise en relation entre des élèves (du primaire au lycée) et des
 
 ## Lancer le site sur ton ordinateur
 
-Il faut [Node.js](https://nodejs.org) version 20 ou plus.
+Il faut [Node.js](https://nodejs.org) version 22.13 ou plus (la version LTS convient). La base de données est celle intégrée à Node.js : aucune compilation ni logiciel supplémentaire à installer.
 
 ```bash
 npm install
