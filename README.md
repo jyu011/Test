@@ -29,6 +29,12 @@ npm run seed     # crée des comptes de démonstration (mot de passe : demo1234)
 npm start        # puis ouvre http://localhost:3000
 ```
 
+### Sous Windows, sans taper de commande
+
+- Double-clique sur **`Lancer Relais.bat`**. La première fois, il installe tout et crée les comptes de démo. Il démarre ensuite le site, l'ouvre dans le navigateur et ajoute une icône **Relais** sur le Bureau.
+- Les fois suivantes, il suffit de double-cliquer sur l'icône **Relais** du Bureau.
+- Pour que le site démarre tout seul à chaque ouverture de Windows, double-clique une fois sur **`Relais au demarrage de Windows.bat`** (et sur **`Retirer Relais du demarrage.bat`** pour annuler). Il suffit alors d'ouvrir http://localhost:3000.
+
 Comptes de démo : `admin@relais.local`, `prof1@relais.local` … `prof9@relais.local`, `eleve1@relais.local` … `eleve3@relais.local`.
 
 Sans configuration, le site tourne en **mode simulation** :

@@ -119,8 +119,27 @@ app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   res.status(500).render('error', { title: 'Oups', message: 'Une erreur est survenue. Réessaie dans un instant.' });
 });
 
-app.listen(PORT, () => {
+// Ouvre le site dans le navigateur (utilisé par le lanceur "Lancer Relais.bat").
+function openBrowser() {
+  const { exec } = require('child_process');
+  const url = `http://localhost:${PORT}`;
+  const cmd = process.platform === 'win32' ? `start "" "${url}"` : process.platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
+  exec(cmd, () => {});
+}
+
+const server = app.listen(PORT, (err) => {
+  if (err) return; // géré ci-dessous (Express 5 appelle aussi ce callback en cas d'erreur)
   console.log(`Relais tourne sur http://localhost:${PORT} (paiements : ${payments.MODE}, e-mails : ${mailer.smtpEnabled ? 'SMTP' : 'dossier data/emails'})`);
+  if (process.env.OUVRIR_NAVIGATEUR) openBrowser();
+});
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    // Le site tourne déjà (par exemple lancé au démarrage de Windows) : on ouvre juste le navigateur.
+    console.log(`Relais tourne déjà sur http://localhost:${PORT}.`);
+    if (process.env.OUVRIR_NAVIGATEUR) { openBrowser(); setTimeout(() => process.exit(0), 1500); return; }
+    process.exit(1);
+  }
+  throw err;
 });
 
 // Tâches automatiques : rappels, demandes de validation, validation après 72 h, versements en attente.
