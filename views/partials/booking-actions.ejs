@@ -1,0 +1,12 @@
+<div class="booking-actions">
+  <% if (b.can.accept) { %>
+    <form method="post" action="/reservations/<%= b.id %>/accepter"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-mint">Accepter le créneau</button></form>
+    <form method="post" action="/reservations/<%= b.id %>/refuser"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-ghost">Refuser</button></form>
+  <% } %>
+  <% if (b.can.pay) { %>
+    <a class="btn btn-coral" href="/reservations/<%= b.id %>/payer">Payer <%= b.price %> par carte</a>
+  <% } %>
+  <% if (b.can.validate) { %>
+    <form method="post" action="/reservations/<%= b.id %>/valider"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-mint">Le cours s'est bien passé</button></form>
+  <% } %>
+</div>

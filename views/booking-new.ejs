@@ -1,0 +1,44 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow-wide">
+  <a href="/messages/<%= conv.id %>" class="back-link">← Retour à la conversation</a>
+  <h1 class="page-title">Réserver un cours</h1>
+  <p class="lead">Propose un créneau à <%= otherName %>. Le cours sera confirmé quand vous l'aurez validé tous les deux, puis l'élève le paiera par carte sur Relais.</p>
+
+  <% if (blocker) { %>
+    <div class="flash flash-info"><%= blocker %>
+      <% if (user.role === 'prof') { %><br><a href="/compte/versements/configurer" class="btn btn-mint btn-sm mt-8">Configurer mes versements</a><% } %>
+    </div>
+  <% } else { %>
+  <form method="post" action="/messages/<%= conv.id %>/reserver" class="card form-card" data-booking-form data-rate="<%= tp.hourly_rate %>">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <% if (errors.date) { %><div class="flash flash-error" role="alert"><%= errors.date %></div><% } %>
+    <div class="grid-3">
+      <label class="field"><span>Date *</span><input type="date" name="date" value="<%= v.date %>" min="<%= minDate %>" required></label>
+      <label class="field"><span>Heure de début *</span><input type="time" name="time" value="<%= v.time %>" step="900" required></label>
+      <label class="field"><span>Durée *</span>
+        <select name="duration" data-duration>
+          <% C.DURATIONS.forEach(function (d) { %><option value="<%= d %>" <%= v.duration === d ? 'selected' : '' %>><%= d % 60 ? Math.floor(d / 60) + ' h ' + (d % 60) : d / 60 + ' h' %></option><% }) %>
+        </select></label>
+    </div>
+    <div class="grid-2">
+      <label class="field"><span>Matière *</span>
+        <select name="subject"><% subjects.forEach(function (s) { %><option <%= v.subject === s ? 'selected' : '' %>><%= s %></option><% }) %></select><%- fieldError(errors, 'subject') %></label>
+      <label class="field"><span>Format *</span>
+        <select name="mode"><% modes.forEach(function (m) { %><option value="<%= m %>" <%= v.mode === m ? 'selected' : '' %>><%= C.MODES[m] %></option><% }) %></select><%- fieldError(errors, 'mode') %></label>
+    </div>
+    <label class="field"><span>Message <em>(facultatif)</em></span>
+      <textarea name="note" rows="2" maxlength="500" placeholder="Ex. : chapitre à revoir, lieu de rendez-vous…"><%= v.note || '' %></textarea></label>
+
+    <div class="price-box">
+      <div><span class="muted">Prix du cours</span><b data-price><%= tp.hourly_rate %> €</b><small class="muted"><%= tp.hourly_rate %> € / h × durée</small></div>
+      <ul class="price-split">
+        <li>Payé par l'élève par carte, sur Relais</li>
+        <li>Dont 30 % de frais de service Relais : <span data-commission></span></li>
+        <li>Versé au prof après le cours (70 %) : <b data-tutor></b></li>
+      </ul>
+    </div>
+    <button class="btn btn-coral btn-lg btn-block" type="submit">Envoyer la proposition</button>
+  </form>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

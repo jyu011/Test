@@ -26,14 +26,19 @@
         <div class="thread-head">
           <a href="/messages" class="back-link thread-back">←</a>
           <%- include('partials/avatar', { photo: other.photo, initial: other.initial, size: 'md' }) %>
-          <div>
+          <div class="thread-who">
             <b><% if (other.link) { %><a href="<%= other.link %>"><%= other.name %></a><% } else { %><%= other.name %><% } %></b>
             <div class="muted small"><%= other.sub %></div>
           </div>
+          <% if (user.role !== 'admin') { %><a href="/messages/<%= current.id %>/reserver" class="btn btn-coral btn-sm thread-book">Réserver un cours</a><% } %>
         </div>
         <div class="thread-messages" id="thread" data-conv="<%= current.id %>" data-last="<%= messages.length ? messages[messages.length - 1].id : 0 %>" aria-live="polite">
           <% messages.forEach(function (m) { %>
-            <div class="msg <%= m.mine ? 'msg-mine' : '' %>" data-id="<%= m.id %>"><p><%= m.body %></p><time><%= m.at %></time></div>
+            <% if (m.kind === 'reservation') { %>
+              <div class="msg msg-system" data-id="<%= m.id %>"><p><%= m.body %></p><a href="/reservations/<%= m.bookingId %>">Voir la réservation →</a><time><%= m.at %></time></div>
+            <% } else { %>
+              <div class="msg <%= m.mine ? 'msg-mine' : '' %>" data-id="<%= m.id %>"><p><%= m.body %></p><time><%= m.at %></time></div>
+            <% } %>
           <% }) %>
           <span id="bas"></span>
         </div>
@@ -43,11 +48,24 @@
           <textarea id="msg-body" name="body" rows="2" maxlength="2000" required placeholder="Écris ton message…"></textarea>
           <button class="btn btn-primary" type="submit">Envoyer</button>
         </form>
-        <p class="secure-note">Pour ta sécurité, garde les échanges sur Relais jusqu'au premier cours et ne partage jamais de mot de passe ou de coordonnées bancaires.</p>
+        <p class="secure-note">Pour être protégé, réserve et paie toujours tes cours via Relais (bouton « Réserver un cours »). Ne partage jamais de mot de passe ni de coordonnées bancaires.</p>
       </div>
 
+      <aside class="side-col">
+        <div class="card bookings-panel">
+          <h2 class="card-title">Cours</h2>
+          <% if (!bookings.length) { %>
+            <p class="muted small">Aucun cours prévu pour l'instant.<% if (tutorRate) { %> Tarif : <%= tutorRate %> € / h.<% } %></p>
+          <% } %>
+          <ul class="mini-bookings">
+            <% bookings.forEach(function (b) { %>
+              <li><a href="/reservations/<%= b.id %>"><b><%= b.when %></b><br><span class="muted small"><%= b.subject %> · <%= b.price %></span><br><span class="status status-<%= b.status %>"><%= b.statusLabel %></span></a></li>
+            <% }) %>
+          </ul>
+          <a href="/messages/<%= current.id %>/reserver" class="btn btn-ghost btn-sm">Proposer un créneau</a>
+        </div>
       <% if (student) { %>
-        <aside class="student-card card" aria-label="Fiche de l'élève">
+        <div class="student-card card" aria-label="Fiche de l'élève">
           <h2 class="card-title">Fiche élève</h2>
           <div class="student-id">
             <%- include('partials/avatar', { photo: null, initial: student.first_name.charAt(0), size: 'lg' }) %>
@@ -63,8 +81,9 @@
             <% if (student.goals) { %><dt>Objectifs</dt><dd><%= student.goals %></dd><% } %>
             <dt>Membre depuis</dt><dd><%= frDate(student.created_at) %></dd>
           </dl>
-        </aside>
+        </div>
       <% } %>
+      </aside>
     <% } else { %>
       <div class="thread card thread-empty"><p class="muted">Choisis une conversation à gauche.</p></div>
     <% } %>

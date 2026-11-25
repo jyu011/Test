@@ -1,0 +1,84 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight">
+  <div class="planning-head">
+    <h1 class="page-title">Mon planning</h1>
+    <nav class="week-nav" aria-label="Changer de semaine">
+      <a class="btn btn-ghost btn-sm" href="/planning?semaine=<%= prev %>" aria-label="Semaine précédente">←</a>
+      <span class="week-label"><%= rangeLabel %></span>
+      <a class="btn btn-ghost btn-sm" href="/planning?semaine=<%= next %>" aria-label="Semaine suivante">→</a>
+      <% if (!isThisWeek) { %><a class="btn btn-ghost btn-sm" href="/planning">Aujourd'hui</a><% } %>
+    </nav>
+  </div>
+
+  <% if (pending.length) { %>
+    <div class="card todo">
+      <h2 class="card-title">À faire</h2>
+      <ul class="todo-list">
+        <% pending.forEach(function (b) { %>
+          <li>
+            <div>
+              <b><%= b.subject %> avec <%= b.otherName %></b><br>
+              <span class="muted small"><%= b.when %> · <%= b.price %></span><br>
+              <span class="todo-what"><%= b.can.accept ? 'Créneau proposé : accepte ou refuse' : (b.can.pay ? 'Créneau confirmé : paiement à effectuer' : (b.can.validate ? 'Cours terminé : confirme qu\'il s\'est bien passé' : 'En attente du paiement de l\'élève')) %></span>
+            </div>
+            <a class="btn btn-sm <%= b.can.pay ? 'btn-coral' : 'btn-primary' %>" href="/reservations/<%= b.id %>"><%= b.can.pay ? 'Payer' : 'Voir' %></a>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <div class="legend">
+    <span class="lg lg-payee">Réservé et payé</span>
+    <span class="lg lg-confirmee">Confirmé, à payer</span>
+    <span class="lg lg-proposee">En attente de confirmation</span>
+    <span class="lg lg-terminee">Terminé</span>
+  </div>
+
+  <div class="week">
+    <% days.forEach(function (d) { %>
+      <div class="day <%= d.today ? 'day-today' : '' %>">
+        <h2 class="day-title"><span class="day-short"><%= d.label %></span><span class="day-long"><%= d.long %></span></h2>
+        <% if (!d.items.length) { %><p class="day-empty">—</p><% } %>
+        <% d.items.forEach(function (b) { %>
+          <a class="slot slot-<%= b.status %>" href="/reservations/<%= b.id %>">
+            <span class="slot-time"><%= b.from %> – <%= b.to %></span>
+            <span class="slot-who"><%= b.otherName %></span>
+            <span class="slot-what"><%= b.subject %></span>
+          </a>
+        <% }) %>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="dash-grid dash-grid-2">
+    <div class="card">
+      <h2 class="card-title">Prochains cours</h2>
+      <% if (!upcoming.length) { %>
+        <p class="muted">Aucun cours réservé pour l'instant.</p>
+        <% if (user.role === 'eleve') { %><a class="btn btn-coral mt-8" href="/profs">Trouver un prof</a><% } %>
+      <% } %>
+      <ul class="upcoming">
+        <% upcoming.forEach(function (b) { %>
+          <li><a href="/reservations/<%= b.id %>"><b><%= b.when %></b><br><span class="muted"><%= b.subject %> avec <%= b.otherName %> · <%= b.modeLabel %></span></a></li>
+        <% }) %>
+      </ul>
+    </div>
+    <% if (user.role === 'prof') { %>
+      <div class="card">
+        <h2 class="card-title">Mes élèves</h2>
+        <% if (!students.length) { %><p class="muted">Tes élèves apparaîtront ici après leur premier cours réservé.</p><% } %>
+        <ul class="students">
+          <% students.forEach(function (s) { %>
+            <li>
+              <%- include('partials/avatar', { photo: null, initial: s.first_name.charAt(0), size: 'sm' }) %>
+              <div><b><%= s.name %></b><% if (s.school_grade) { %> <span class="muted">· <%= s.school_grade %></span><% } %><br>
+                <span class="muted small"><%= s.done %> cours terminé<%= s.done > 1 ? 's' : '' %><%= s.next ? ' · prochain : ' + s.next : '' %></span></div>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+  </div>
+</section>
+<%- include('partials/footer') %>

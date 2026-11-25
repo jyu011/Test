@@ -28,6 +28,9 @@
       <a href="/profs" class="<%= path.startsWith('/profs') ? 'active' : '' %>">Trouver un prof</a>
       <a href="/#comment">Comment ça marche</a>
       <a href="/devenir-prof" class="<%= path === '/devenir-prof' || path === '/inscription/prof' ? 'active' : '' %>">Donner des cours</a>
+      <% if (user && user.role !== 'admin') { %>
+        <a href="/planning" class="<%= path.startsWith('/planning') || path.startsWith('/reservations') ? 'active' : '' %>">Planning</a>
+      <% } %>
       <% if (user) { %>
         <a href="/messages" class="nav-messages <%= path.startsWith('/messages') ? 'active' : '' %>">Messages<% if (unread) { %> <span class="badge-count" aria-label="<%= unread %> non lus"><%= unread %></span><% } %></a>
       <% } %>

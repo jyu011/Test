@@ -2,6 +2,13 @@
 <section class="wrap section-tight">
   <h1 class="page-title">Bonjour <%= u.first_name %> !</h1>
 
+  <% if (!u.email_verified) { %>
+    <div class="flash flash-info verify-banner">
+      <span><b>Confirme ton adresse e-mail.</b> Clique sur le lien envoyé à <%= u.email %><%= u.role === 'eleve' ? ' pour pouvoir contacter des profs et réserver des cours' : '' %>.</span>
+      <form method="post" action="/compte/renvoyer-verification"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-ghost btn-sm">Renvoyer l'e-mail</button></form>
+    </div>
+  <% } %>
+
   <% if (u.role === 'prof') { %>
     <% if (profile.status === 'en_attente') { %>
       <div class="flash flash-info"><b>Profil en cours de vérification.</b> Nous vérifions ton certificat de scolarité. Ton profil sera visible par les élèves dès sa validation.</div>
@@ -13,6 +20,36 @@
   <% } %>
 
   <div class="dash-grid">
+    <div class="card dash-card">
+      <h2 class="card-title">Planning</h2>
+      <p class="big-number"><%= nextLessons %></p>
+      <p class="muted">cours à venir ou en attente</p>
+      <a href="/planning" class="btn btn-primary">Voir mon planning</a>
+    </div>
+
+    <% if (u.role === 'prof') { %>
+      <div class="card dash-card">
+        <h2 class="card-title">Mes versements</h2>
+        <% if (profile.payouts_ready) { %>
+          <span class="verified"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg>RIB configuré</span>
+        <% } else { %>
+          <span class="status status-en_attente">RIB à configurer</span>
+          <p class="muted small">Obligatoire pour accepter des cours et recevoir tes paiements.</p>
+        <% } %>
+        <dl class="info-list">
+          <dt>Déjà versé</dt><dd><b><%= earnings.paid %></b></dd>
+          <dt>À venir</dt><dd><%= earnings.pending %></dd>
+          <dt>Cours donnés</dt><dd><%= earnings.lessons %></dd>
+        </dl>
+        <p class="muted small">Tu touches 70 % du prix de chaque cours, versés sur ton compte bancaire dès que l'élève a validé le cours. Ton RIB est conservé par notre prestataire de paiement sécurisé et n'apparaît jamais sur Relais.</p>
+        <% if (profile.payouts_ready) { %>
+          <a href="/compte/versements/<%= payMode === 'stripe' ? 'tableau' : 'configurer' %>" class="btn btn-ghost">Gérer mon RIB et mes virements</a>
+        <% } else { %>
+          <a href="/compte/versements/configurer" class="btn btn-mint">Configurer mes versements</a>
+        <% } %>
+      </div>
+    <% } %>
+
     <div class="card dash-card">
       <h2 class="card-title">Messagerie</h2>
       <p class="big-number"><%= unread %></p>

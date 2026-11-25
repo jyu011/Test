@@ -16,13 +16,21 @@
   function add(m) {
     if (thread.querySelector(`[data-id="${m.id}"]`)) return;
     const div = document.createElement('div');
-    div.className = 'msg' + (m.mine ? ' msg-mine' : '');
+    const system = m.kind === 'reservation';
+    div.className = 'msg' + (system ? ' msg-system' : (m.mine ? ' msg-mine' : ''));
     div.dataset.id = m.id;
     const p = document.createElement('p');
     p.textContent = m.body; // textContent : jamais de HTML injecté
     const t = document.createElement('time');
     t.textContent = m.at;
-    div.append(p, t);
+    div.append(p);
+    if (system && m.bookingId) {
+      const a = document.createElement('a');
+      a.href = `/reservations/${Number(m.bookingId)}`;
+      a.textContent = 'Voir la réservation →';
+      div.append(a);
+    }
+    div.append(t);
     thread.insertBefore(div, end);
     lastId = Math.max(lastId, m.id);
     scrollDown();

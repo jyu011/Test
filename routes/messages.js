@@ -3,6 +3,18 @@ const rateLimit = require('express-rate-limit');
 const { db } = require('../lib/db');
 const { requireLogin, requireRole } = require('../lib/middleware');
 const { publicName, initials, split, frDateTime } = require('../lib/helpers');
+const emails = require('../lib/emails');
+const B = require('../lib/bookings');
+const { slotLabel, euros } = require('../lib/time');
+
+// E-mail au destinataire seulement pour le premier message non lu (évite d'inonder sa boîte).
+function notify(conv, sender, body) {
+  const recipientId = sender.id === conv.student_id ? conv.tutor_id : conv.student_id;
+  const unread = db.prepare('SELECT COUNT(*) AS n FROM messages WHERE conversation_id = ? AND sender_id != ? AND read_at IS NULL').get(conv.id, recipientId).n;
+  if (unread !== 1) return;
+  const recipient = db.prepare('SELECT id, email, first_name FROM users WHERE id = ?').get(recipientId);
+  emails.newMessage(recipient, sender, conv.id, body);
+}
 
 const router = express.Router();
 
@@ -44,11 +56,11 @@ function listConversations(userId) {
   });
 }
 
-const toJson = (m, me) => ({ id: m.id, body: m.body, mine: m.sender_id === me, at: frDateTime(m.created_at) });
+const toJson = (m, me) => ({ id: m.id, body: m.body, mine: m.sender_id === me, at: frDateTime(m.created_at), kind: m.kind, bookingId: m.booking_id });
 
 router.get('/messages', requireLogin, (req, res) => {
   const conversations = listConversations(req.user.id);
-  res.render('messages', { title: 'Messagerie', conversations, current: null, messages: [], student: null });
+  res.render('messages', { title: 'Messagerie', conversations, current: null, messages: [], student: null, bookings: [] });
 });
 
 router.get('/messages/:id', requireLogin, (req, res) => {
@@ -70,6 +82,9 @@ router.get('/messages/:id', requireLogin, (req, res) => {
     if (student) student.subjectList = split(student.subjects);
   }
   const isStudent = req.user.id === conv.student_id;
+  const bookings = db.prepare(`SELECT * FROM bookings WHERE conversation_id = ? AND status IN ('proposee', 'confirmee', 'payee', 'litige')
+    ORDER BY starts_at`).all(conv.id).map((b) => ({ ...b, when: slotLabel(b), price: euros(b.price_cents), statusLabel: B.STATUS_LABELS[b.status] }));
+  const tutorRate = db.prepare('SELECT hourly_rate FROM tutor_profiles WHERE user_id = ?').get(conv.tutor_id);
   const other = isStudent
     ? { name: publicName({ first_name: conv.p_first, last_name: conv.p_last }), photo: conv.p_photo, sub: `${conv.p_field} · ${conv.p_school}`, link: `/profs/${conv.tutor_id}` }
     : { name: publicName({ first_name: conv.s_first, last_name: conv.s_last }), photo: null, sub: student ? student.school_grade : '', link: null };
@@ -78,7 +93,7 @@ router.get('/messages/:id', requireLogin, (req, res) => {
   res.render('messages', {
     title: `Messages – ${other.name}`,
     conversations: listConversations(req.user.id),
-    current: conv, other, messages, student,
+    current: conv, other, messages, student, bookings, tutorRate: tutorRate ? tutorRate.hourly_rate : null,
   });
 });
 
@@ -88,6 +103,10 @@ router.post('/profs/:id/contacter', requireRole('eleve'), sendLimiter, (req, res
   const tutor = db.prepare("SELECT user_id FROM tutor_profiles WHERE user_id = ? AND status = 'verifie'").get(tutorId);
   const body = String(req.body.body || '').trim().slice(0, MAX_LEN);
   if (!tutor) return res.redirect('/profs');
+  if (!db.prepare('SELECT email_verified FROM users WHERE id = ?').get(req.user.id).email_verified) {
+    req.flash('error', "Confirme d'abord ton adresse e-mail (lien envoyé à l'inscription, ou renvoie-le depuis « Mon compte »).");
+    return res.redirect(`/profs/${tutorId}#contact`);
+  }
   if (body.length < 2) {
     req.flash('error', 'Écris un message avant de l\'envoyer.');
     return res.redirect(`/profs/${tutorId}#contact`);
@@ -98,6 +117,7 @@ router.post('/profs/:id/contacter', requireRole('eleve'), sendLimiter, (req, res
     db.prepare('INSERT INTO messages (conversation_id, sender_id, body) VALUES (?, ?, ?)').run(conv.id, req.user.id, body);
     return conv.id;
   })();
+  notify(db.prepare('SELECT * FROM conversations WHERE id = ?').get(convId), req.user, body);
   res.redirect(`/messages/${convId}`);
 });
 
@@ -109,6 +129,7 @@ router.post('/messages/:id', requireLogin, sendLimiter, (req, res) => {
   const body = String(req.body.body || '').trim().slice(0, MAX_LEN);
   if (!body) return wantsJson ? res.status(400).json({ error: 'Message vide' }) : res.redirect(`/messages/${conv.id}`);
   const { lastInsertRowid } = db.prepare('INSERT INTO messages (conversation_id, sender_id, body) VALUES (?, ?, ?)').run(conv.id, req.user.id, body);
+  notify(conv, req.user, body);
   if (wantsJson) {
     const m = db.prepare('SELECT * FROM messages WHERE id = ?').get(lastInsertRowid);
     return res.json({ message: toJson(m, req.user.id) });

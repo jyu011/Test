@@ -1,0 +1,16 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow">
+  <div class="sim-banner">MODE SIMULATION – aucun paiement réel. En production, cette page est remplacée par la page de paiement sécurisée Stripe (carte bancaire + 3D Secure).</div>
+  <div class="card form-card">
+    <h1 class="page-title">Paiement</h1>
+    <p><b>Cours de <%= b.subject %> avec <%= tutor.first_name %></b><br><span class="muted"><%= when %> (<%= duration %>)</span></p>
+    <div class="price-box"><div><span class="muted">Total</span><b><%= price %></b></div></div>
+    <label class="field"><span>Numéro de carte (simulation)</span><input value="4242 4242 4242 4242" disabled></label>
+    <form method="post" action="/simulation/paiement/<%= b.id %>">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <button class="btn btn-coral btn-lg btn-block">Simuler le paiement de <%= price %></button>
+    </form>
+    <a class="btn btn-ghost btn-block" href="/reservations/<%= b.id %>?paiement=annule">Annuler</a>
+  </div>
+</section>
+<%- include('partials/footer') %>

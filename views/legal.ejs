@@ -15,11 +15,18 @@
     <p>Les profs doivent être étudiants, âgés d'au moins <%= C.MIN_TUTOR_AGE %> ans et fournir un justificatif de scolarité. Les élèves de moins de <%= C.PARENTAL_CONSENT_AGE %> ans doivent obtenir l'accord d'un parent.</p>
     <h2>3. Messagerie et avis</h2>
     <p>La messagerie doit être utilisée de façon respectueuse. Les avis doivent refléter une expérience réelle ; Relais peut supprimer tout contenu abusif.</p>
-    <h2>4. Tarifs et paiement</h2>
-    <p>[À compléter : paiement direct entre élève et prof, ou via la plateforme, commission éventuelle…]</p>
+    <h2>4. Tarifs, paiement et commission</h2>
+    <p>Chaque prof fixe librement son tarif horaire, affiché toutes taxes comprises. Tous les cours sont réservés et payés par carte bancaire sur Relais, via notre prestataire de paiement agréé (Stripe). Les paiements effectués en dehors de la plateforme ne sont pas protégés.</p>
+    <p>Relais perçoit une commission de 30 % du prix de chaque cours. Le prof reçoit 70 % du prix, versés sur son compte bancaire après validation du cours par l'élève, ou automatiquement 72 heures après la fin du cours en l'absence de problème signalé.</p>
+    <h2>5. Annulation et remboursement</h2>
+    <p>Un cours payé peut être annulé par l'élève ou le prof jusqu'à 24 heures avant son début : l'élève est alors intégralement remboursé. En cas de problème signalé par l'élève, le paiement est bloqué jusqu'à la décision de l'équipe Relais (remboursement ou versement au prof).</p>
+    <h2>6. Obligations des profs</h2>
+    <p>Les revenus perçus via Relais sont imposables. Il appartient à chaque prof de les déclarer (par exemple sous le statut de micro-entrepreneur). [À compléter avec les informations de déclaration DAC7 transmises à l'administration fiscale.]</p>
   <% } else { %>
     <h2>Données collectées</h2>
-    <p>Identité (nom, prénom, date de naissance), coordonnées (e-mail, téléphone facultatif, adresse), informations scolaires, messages échangés et avis. Pour les profs : justificatif de scolarité.</p>
+    <p>Identité (nom, prénom, date de naissance), coordonnées (e-mail, téléphone facultatif, adresse), informations scolaires, messages échangés, réservations et avis. Pour les profs : justificatif de scolarité.</p>
+    <h2>Paiements</h2>
+    <p>Les données de carte bancaire des élèves et les coordonnées bancaires (RIB) des profs sont saisies directement chez notre prestataire de paiement Stripe et conservées par lui. Relais n'y a jamais accès et ne les enregistre pas.</p>
     <h2>Ce qui est public</h2>
     <p>Pour les profs : prénom et initiale du nom, photo, études, matières, niveaux, tarif, ville et rayon de déplacement. Jamais l'adresse exacte, l'e-mail, le téléphone ni le justificatif. Les fiches élèves ne sont visibles que par les profs avec qui l'élève échange.</p>
     <h2>Tes droits</h2>

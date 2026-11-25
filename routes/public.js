@@ -45,7 +45,9 @@ router.get('/profs/:id', (req, res) => {
     conversation = db.prepare('SELECT id FROM conversations WHERE student_id = ? AND tutor_id = ?').get(req.user.id, id);
     // Pour éviter les faux avis : il faut avoir échangé avec le prof et qu'il ait répondu.
     if (conversation) {
-      canReview = !!db.prepare('SELECT 1 FROM messages WHERE conversation_id = ? AND sender_id = ?').get(conversation.id, id);
+      // Avis possible si le prof a répondu (message écrit) ou si un cours a eu lieu.
+      canReview = !!db.prepare("SELECT 1 FROM messages WHERE conversation_id = ? AND sender_id = ? AND kind = 'texte'").get(conversation.id, id)
+        || !!db.prepare("SELECT 1 FROM bookings WHERE conversation_id = ? AND status = 'terminee'").get(conversation.id);
     }
     myReview = reviews.find((r) => r.student_id === req.user.id) || null;
   }

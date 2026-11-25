@@ -9,8 +9,8 @@ if (db.prepare('SELECT COUNT(*) AS n FROM users').get().n > 0 && !process.argv.i
 }
 
 const hash = bcrypt.hashSync('demo1234', 10);
-const addUser = db.prepare(`INSERT INTO users (role, email, password_hash, first_name, last_name, birth_date, created_at)
-  VALUES (@role, @email, @hash, @first_name, @last_name, @birth_date, datetime('now', @ago))`);
+const addUser = db.prepare(`INSERT INTO users (role, email, password_hash, first_name, last_name, birth_date, created_at, email_verified)
+  VALUES (@role, @email, @hash, @first_name, @last_name, @birth_date, datetime('now', @ago), 1)`);
 const addTutor = db.prepare(`INSERT INTO tutor_profiles (user_id, school, school_city, field_of_study, study_year, address, postal_code, city,
   radius_km, modes, subjects, levels, hourly_rate, headline, description, status)
   VALUES (@id, @school, @school_city, @field_of_study, @study_year, @address, @postal_code, @city, @radius_km, @modes, @subjects, @levels,
@@ -69,6 +69,10 @@ db.transaction(() => {
   const tutorIds = tutors.map((t, i) => {
     const { lastInsertRowid: id } = addUser.run({ role: 'prof', email: `prof${i + 1}@relais.local`, hash, ...t, ago: `-${40 - i * 4} days` });
     addTutor.run({ id, address: '[adresse privée de démo]', status: 'verifie', ...t });
+    // Versements "configurés" en mode simulation pour les profs vérifiés de démo.
+    if ((t.status || 'verifie') === 'verifie') {
+      db.prepare('UPDATE tutor_profiles SET stripe_account_id = ?, payouts_ready = 1 WHERE user_id = ?').run(`acct_simu_demo${id}`, id);
+    }
     return id;
   });
   const studentIds = students.map((s, i) => {
@@ -88,6 +92,37 @@ db.transaction(() => {
   // Une conversation récente non lue pour Léa.
   const c = db.prepare('SELECT id FROM conversations WHERE student_id = ? AND tutor_id = ?').get(studentIds[0], tutorIds[0]);
   db.prepare('INSERT INTO messages (conversation_id, sender_id, body) VALUES (?, ?, ?)').run(c.id, studentIds[0], 'Bonjour Léa, est-ce possible de rajouter une séance avant le brevet blanc ?');
+
+  // Quelques cours de démo pour remplir les plannings (heures de Paris).
+  const { parisToDate, toIso, parisDay, addDays, mondayOf } = require('../lib/time');
+  const { computePrice } = require('../lib/bookings');
+  const monday = mondayOf(parisDay(Date.now()));
+  const convOf = (si, ti) => {
+    db.prepare('INSERT OR IGNORE INTO conversations (student_id, tutor_id) VALUES (?, ?)').run(studentIds[si], tutorIds[ti]);
+    return db.prepare('SELECT id FROM conversations WHERE student_id = ? AND tutor_id = ?').get(studentIds[si], tutorIds[ti]).id;
+  };
+  const addBooking = (si, ti, dayOffset, time, dur, subject, mode, status) => {
+    const start = parisToDate(addDays(monday, dayOffset), time);
+    const rate = tutors[ti].hourly_rate;
+    const p = computePrice(rate, dur);
+    const done = status === 'terminee';
+    db.prepare(`INSERT INTO bookings (conversation_id, student_id, tutor_id, starts_at, ends_at, duration_min, subject, mode, hourly_rate,
+      price_cents, commission_cents, tutor_amount_cents, status, proposed_by, payment_intent_id, charge_id, paid_at, validated_at, validated_by,
+      payout_status, transfer_id, paid_out_at, validation_asked, reminder_sent)
+      VALUES (@conv, @s, @t, @start, @end, @dur, @subject, @mode, @rate, @price_cents, @commission_cents, @tutor_amount_cents, @status, @s,
+      @pi, @ch, @paid, @val, @valBy, @payout, @tr, @paidOut, @asked, @asked)`).run({
+      conv: convOf(si, ti), s: studentIds[si], t: tutorIds[ti], start: toIso(start), end: toIso(new Date(start.getTime() + dur * 60000)),
+      dur, subject, mode, rate, ...p, status,
+      pi: ['payee', 'terminee'].includes(status) ? 'pi_simu_demo' : null, ch: ['payee', 'terminee'].includes(status) ? 'ch_simu_demo' : null,
+      paid: ['payee', 'terminee'].includes(status) ? toIso(new Date()) : null, val: done ? toIso(new Date()) : null, valBy: done ? 'eleve' : null,
+      payout: done ? 'verse' : null, tr: done ? 'tr_simu_demo' : null, paidOut: done ? toIso(new Date()) : null, asked: done ? 1 : 0,
+    });
+  };
+  addBooking(0, 0, -5, '17:00', 60, 'Mathématiques', 'domicile', 'terminee');
+  addBooking(0, 0, 9, '17:00', 60, 'Mathématiques', 'domicile', 'payee');
+  addBooking(1, 0, 10, '18:00', 90, 'Physique-chimie', 'en_ligne', 'payee');
+  addBooking(0, 0, 12, '10:00', 60, 'Mathématiques', 'domicile', 'confirmee');
+  addBooking(1, 1, 11, '14:00', 120, 'Informatique / NSI', 'chez_prof', 'payee');
 })();
 
 console.log(`Données de démo créées. Mot de passe de tous les comptes : demo1234

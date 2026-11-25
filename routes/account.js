@@ -6,6 +6,15 @@ const { upload, deleteUpload, split } = require('../lib/helpers');
 const { validateIdentity, validateStudent, validateTutor } = require('../lib/validate');
 const { requireLogin, requireRole } = require('../lib/middleware');
 const C = require('../lib/constants');
+const tokens = require('../lib/tokens');
+const emails = require('../lib/emails');
+const payments = require('../lib/payments');
+const { euros } = require('../lib/time');
+
+function sendVerification(userId) {
+  const u = db.prepare('SELECT id, email, first_name FROM users WHERE id = ?').get(userId);
+  emails.verification(u, tokens.create(u.id, 'verification', 48));
+}
 
 const router = express.Router();
 
@@ -59,7 +68,18 @@ router.get('/compte', (req, res) => {
     ? db.prepare('SELECT ROUND(AVG(rating),1) AS rating, COUNT(*) AS n FROM reviews WHERE tutor_id = ?').get(u.id)
     : null;
   const convCount = db.prepare('SELECT COUNT(*) AS n FROM conversations WHERE student_id = ? OR tutor_id = ?').get(u.id, u.id).n;
-  res.render('account', { title: 'Mon compte', u, profile, stats, convCount, ...formLocals });
+  let earnings = null;
+  if (req.user.role === 'prof') {
+    const e = db.prepare(`SELECT
+        COALESCE(SUM(CASE WHEN status = 'terminee' AND payout_status = 'verse' THEN tutor_amount_cents END), 0) AS paid,
+        COALESCE(SUM(CASE WHEN status IN ('payee', 'litige') OR (status = 'terminee' AND payout_status != 'verse') THEN tutor_amount_cents END), 0) AS pending,
+        COUNT(CASE WHEN status = 'terminee' THEN 1 END) AS lessons
+      FROM bookings WHERE tutor_id = ?`).get(u.id);
+    earnings = { paid: euros(e.paid), pending: euros(e.pending), lessons: e.lessons };
+  }
+  const nextLessons = db.prepare(`SELECT COUNT(*) AS n FROM bookings WHERE ${req.user.role === 'prof' ? 'tutor_id' : 'student_id'} = ?
+    AND status IN ('proposee', 'confirmee', 'payee') AND starts_at >= ?`).get(u.id, new Date().toISOString()).n;
+  res.render('account', { title: 'Mon compte', u, profile, stats, convCount, earnings, nextLessons, payMode: payments.MODE, ...formLocals });
 });
 
 // ---------- Connexion ----------
@@ -114,9 +134,10 @@ router.post('/inscription/eleve', authLimiter, (req, res, next) => {
     return id;
   });
   const id = create();
+  sendVerification(id);
   login(req, id, (err) => {
     if (err) return next(err);
-    req.flash('success', 'Bienvenue sur Relais ! Ton compte est créé.');
+    req.flash('success', `Bienvenue sur Relais ! Ton compte est créé. Un e-mail de confirmation t'a été envoyé à ${identity.email}.`);
     const returnTo = req.session.returnTo;
     res.redirect(returnTo && returnTo.startsWith('/profs') ? returnTo : '/profs');
   });
@@ -159,9 +180,10 @@ router.post('/inscription/prof', authLimiter, withUploads, (req, res, next) => {
     return id;
   });
   const id = create();
+  sendVerification(id);
   login(req, id, (err) => {
     if (err) return next(err);
-    req.flash('success', "Ton profil est créé ! Il sera visible par les élèves dès que ton certificat de scolarité aura été vérifié.");
+    req.flash('success', "Ton profil est créé ! Confirme ton adresse e-mail grâce au lien que nous venons de t'envoyer. Il sera visible par les élèves dès que ton certificat de scolarité aura été vérifié.");
     res.redirect('/compte');
   });
 });
@@ -189,6 +211,8 @@ router.post('/compte/modifier', requireRole('eleve', 'prof'), withUploads, (req,
   }
   const files = req.files || {};
   if (req.uploadError) errors.files = req.uploadError;
+
+  const emailChanged = identity.email !== current.email;
 
   if (req.user.role === 'eleve') {
     const student = validateStudent(req.body, errors, identity);
@@ -234,8 +258,66 @@ router.post('/compte/modifier', requireRole('eleve', 'prof'), withUploads, (req,
       (files.gallery || []).forEach((f) => addPhoto.run(current.id, f.filename));
     })();
   }
-  req.flash('success', 'Profil enregistré.');
+  if (emailChanged) {
+    db.prepare('UPDATE users SET email_verified = 0 WHERE id = ?').run(current.id);
+    sendVerification(current.id);
+    req.flash('success', `Profil enregistré. Confirme ta nouvelle adresse grâce au lien envoyé à ${identity.email}.`);
+  } else {
+    req.flash('success', 'Profil enregistré.');
+  }
   res.redirect('/compte');
+});
+
+// ---------- Vérification de l'adresse e-mail ----------
+
+router.get('/verifier-email', (req, res) => {
+  const u = tokens.check(req.query.jeton, 'verification');
+  if (!u) return res.status(400).render('error', { title: 'Lien invalide', message: 'Ce lien de confirmation a expiré ou a déjà été utilisé. Connecte-toi pour en recevoir un nouveau.' });
+  tokens.consume(req.query.jeton);
+  db.prepare('UPDATE users SET email_verified = 1 WHERE id = ?').run(u.id);
+  req.flash('success', 'Adresse e-mail confirmée, merci !');
+  res.redirect(req.user ? '/compte' : '/connexion');
+});
+
+router.post('/compte/renvoyer-verification', requireLogin, authLimiter, (req, res) => {
+  sendVerification(req.user.id);
+  req.flash('success', 'Nouvel e-mail de confirmation envoyé.');
+  res.redirect('/compte');
+});
+
+// ---------- Mot de passe oublié ----------
+
+router.get('/mot-de-passe-oublie', (req, res) => res.render('forgot', { title: 'Mot de passe oublié', sent: false }));
+
+router.post('/mot-de-passe-oublie', authLimiter, (req, res) => {
+  const email = String(req.body.email || '').trim().toLowerCase();
+  const u = db.prepare('SELECT id, email, first_name FROM users WHERE email = ?').get(email);
+  if (u) emails.passwordReset(u, tokens.create(u.id, 'reinitialisation', 1));
+  // Même message que le compte existe ou non (on ne révèle pas quels e-mails sont inscrits).
+  res.render('forgot', { title: 'Mot de passe oublié', sent: true });
+});
+
+router.get('/reinitialiser', (req, res) => {
+  if (!tokens.check(req.query.jeton, 'reinitialisation')) {
+    return res.status(400).render('error', { title: 'Lien expiré', message: 'Ce lien a expiré ou a déjà servi. Refais une demande de mot de passe oublié.' });
+  }
+  res.render('reset', { title: 'Nouveau mot de passe', jeton: req.query.jeton, error: null });
+});
+
+router.post('/reinitialiser', authLimiter, (req, res) => {
+  const jeton = String(req.body.jeton || '');
+  const u = tokens.check(jeton, 'reinitialisation');
+  if (!u) return res.status(400).render('error', { title: 'Lien expiré', message: 'Ce lien a expiré ou a déjà servi.' });
+  const pw = String(req.body.password || '');
+  if (pw.length < 8 || pw !== req.body.password_confirm) {
+    return res.status(400).render('reset', { title: 'Nouveau mot de passe', jeton, error: pw.length < 8 ? 'Au moins 8 caractères.' : 'Les deux mots de passe ne correspondent pas.' });
+  }
+  tokens.consume(jeton);
+  // Cliquer sur le lien prouve aussi que l'adresse e-mail est valide.
+  db.prepare('UPDATE users SET password_hash = ?, email_verified = 1 WHERE id = ?').run(bcrypt.hashSync(pw, 12), u.id);
+  db.prepare("DELETE FROM sessions WHERE json_extract(sess, '$.userId') = ?").run(u.id); // déconnecte les autres appareils
+  req.flash('success', 'Mot de passe modifié. Tu peux te connecter.');
+  res.redirect('/connexion');
 });
 
 router.post('/compte/mot-de-passe', requireLogin, (req, res) => {
@@ -259,6 +341,12 @@ router.post('/compte/supprimer', requireRole('eleve', 'prof'), (req, res) => {
     req.flash('error', 'Mot de passe incorrect : compte non supprimé.');
     return res.redirect('/compte');
   }
+  const active = db.prepare(`SELECT COUNT(*) AS n FROM bookings WHERE (student_id = ? OR tutor_id = ?)
+    AND (status IN ('payee', 'litige') OR (status = 'terminee' AND payout_status != 'verse'))`).get(req.user.id, req.user.id).n;
+  if (active) {
+    req.flash('error', 'Tu as des cours payés en cours ou des versements en attente : annule-les ou attends leur fin avant de supprimer ton compte.');
+    return res.redirect('/compte');
+  }
   const t = db.prepare('SELECT photo, certificate FROM tutor_profiles WHERE user_id = ?').get(req.user.id);
   const photos = db.prepare('SELECT filename FROM tutor_photos WHERE user_id = ?').all(req.user.id);
   db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
@@ -272,7 +360,8 @@ router.post('/compte/supprimer', requireRole('eleve', 'prof'), (req, res) => {
 router.post('/profs/:id/avis', requireRole('eleve'), (req, res) => {
   const tutorId = parseInt(req.params.id, 10);
   const conv = db.prepare('SELECT id FROM conversations WHERE student_id = ? AND tutor_id = ?').get(req.user.id, tutorId);
-  const tutorReplied = conv && db.prepare('SELECT 1 FROM messages WHERE conversation_id = ? AND sender_id = ?').get(conv.id, tutorId);
+  const tutorReplied = conv && (db.prepare("SELECT 1 FROM messages WHERE conversation_id = ? AND sender_id = ? AND kind = 'texte'").get(conv.id, tutorId)
+    || db.prepare("SELECT 1 FROM bookings WHERE conversation_id = ? AND status = 'terminee'").get(conv.id));
   const rating = parseInt(req.body.rating, 10);
   const comment = String(req.body.comment || '').trim().slice(0, 1500);
   if (!tutorReplied) {

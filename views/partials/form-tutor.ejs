@@ -53,9 +53,13 @@
       <% C.SUBJECTS.forEach(function (s) { %><label class="check"><input type="checkbox" name="subjects" value="<%= s %>" <%= has(v.subjects, s) ? 'checked' : '' %>><span><%= s %></span></label><% }) %>
     </div><%- fieldError(errors, 'subjects') %>
   </div>
-  <label class="field field-narrow"><span>Tarif horaire (€) *</span>
-    <input type="number" name="hourly_rate" value="<%= v.hourly_rate || '' %>" min="5" max="150" required placeholder="20">
-    <small>Pour info, les étudiants demandent souvent entre 15 et 30 € / h selon le niveau.</small><%- fieldError(errors, 'hourly_rate') %></label>
+  <label class="field field-medium"><span>Tarif horaire (€) *</span>
+    <input type="number" name="hourly_rate" value="<%= v.hourly_rate || '' %>" min="5" max="150" required placeholder="20" data-rate-input>
+    <small>C'est le prix affiché aux élèves. Pour info, les étudiants demandent souvent entre 15 et 30 € / h selon le niveau.</small>
+    <div class="commission-note" data-commission-note>
+      <b>Relais conserve 30 % du prix</b> (frais de service : paiement sécurisé, protection en cas de litige, messagerie).
+      Tu reçois <b>70 %</b>, soit <b data-net>—</b> par heure de cours, versés sur ton compte bancaire après chaque cours validé.
+    </div><%- fieldError(errors, 'hourly_rate') %></label>
 </fieldset>
 
 <fieldset class="form-section">

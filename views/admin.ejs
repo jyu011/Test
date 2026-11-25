@@ -8,10 +8,45 @@
     <div class="card stat"><b><%= counts.avis %></b><span>avis</span></div>
   </div>
 
+  <div class="stat-row mt-16">
+    <div class="card stat"><b><%= money.held %></b><span>payés, en attente de validation</span></div>
+    <div class="card stat"><b><%= money.commission %></b><span>commissions Relais (cours terminés)</span></div>
+    <div class="card stat"><b><%= money.paidOut %></b><span>versés aux profs</span></div>
+  </div>
+
+  <h2 class="section-title-sm" id="litiges">Cours payés, litiges et versements</h2>
+  <div class="table-wrap card">
+    <table class="table">
+      <thead><tr><th>N°</th><th>Cours</th><th>Élève → Prof</th><th>Montants</th><th>Statut</th><th>Action</th></tr></thead>
+      <tbody>
+        <% if (!bookings.length) { %><tr><td colspan="6" class="muted">Aucun cours payé pour l'instant.</td></tr><% } %>
+        <% bookings.forEach(function (b) { %>
+          <tr>
+            <td><%= b.id %></td>
+            <td><%= b.subject %><br><span class="muted small"><%= b.when %></span></td>
+            <td><%= b.s_first %> <%= b.s_last %> → <%= b.p_first %> <%= b.p_last %></td>
+            <td><%= b.price %><br><span class="muted small">Relais <%= b.commission %> · prof <%= b.tutorAmount %></span></td>
+            <td><span class="status status-<%= b.status %>"><%= b.statusLabel %></span>
+              <% if (b.status === 'terminee') { %><br><span class="muted small">Versement : <%= { verse: 'effectué', en_attente: 'en attente du RIB', erreur: 'erreur' }[b.payout_status] || '—' %></span><% } %>
+              <% if (b.issue_text) { %><br><span class="small">« <%= b.issue_text %> »</span><% } %></td>
+            <td>
+              <% if (b.status === 'litige') { %>
+                <form method="post" action="/admin/reservations/<%= b.id %>/payer" class="inline" data-confirm="Valider le cours et payer le prof ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-mint btn-sm">Payer le prof</button></form>
+                <form method="post" action="/admin/reservations/<%= b.id %>/rembourser" class="inline" data-confirm="Rembourser intégralement l'élève ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-danger btn-sm">Rembourser l'élève</button></form>
+              <% } else if (b.status === 'terminee' && b.payout_status === 'erreur') { %>
+                <form method="post" action="/admin/reservations/<%= b.id %>/reverser" class="inline"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-primary btn-sm">Relancer le versement</button></form>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
   <h2 class="section-title-sm">Profs à vérifier et inscrits</h2>
   <div class="table-wrap card">
     <table class="table">
-      <thead><tr><th>Prof</th><th>Études</th><th>Âge</th><th>Inscrit le</th><th>Certificat</th><th>Statut</th><th>Action</th></tr></thead>
+      <thead><tr><th>Prof</th><th>Études</th><th>Âge</th><th>Inscrit le</th><th>Certificat</th><th>RIB</th><th>Statut</th><th>Action</th></tr></thead>
       <tbody>
         <% tutors.forEach(function (t) { %>
           <tr>
@@ -20,6 +55,7 @@
             <td><%= ageFrom(t.birth_date) %> ans</td>
             <td><%= frDate(t.created_at) %></td>
             <td><% if (t.certificate) { %><a href="/admin/certificat/<%= t.user_id %>" target="_blank" rel="noopener">Ouvrir</a><% } else { %>—<% } %></td>
+            <td><%= t.payouts_ready ? 'Configuré' : '—' %></td>
             <td><span class="status status-<%= t.status %>"><%= { en_attente: 'En attente', verifie: 'Vérifié', refuse: 'Refusé' }[t.status] %></span></td>
             <td>
               <form method="post" action="/admin/profs/<%= t.user_id %>/statut" class="admin-actions">

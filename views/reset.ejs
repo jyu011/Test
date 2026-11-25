@@ -1,0 +1,15 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow">
+  <div class="card form-card">
+    <h1 class="page-title">Nouveau mot de passe</h1>
+    <% if (error) { %><div class="flash flash-error" role="alert"><%= error %></div><% } %>
+    <form method="post" action="/reinitialiser">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <input type="hidden" name="jeton" value="<%= jeton %>">
+      <label class="field"><span>Nouveau mot de passe (8 caractères min.)</span><input type="password" name="password" required minlength="8" autocomplete="new-password"></label>
+      <label class="field"><span>Confirmer</span><input type="password" name="password_confirm" required minlength="8" autocomplete="new-password"></label>
+      <button class="btn btn-primary btn-block">Enregistrer</button>
+    </form>
+  </div>
+</section>
+<%- include('partials/footer') %>

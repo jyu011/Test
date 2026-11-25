@@ -1,0 +1,13 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow">
+  <div class="sim-banner">MODE SIMULATION – en production, cette étape se fait sur le formulaire sécurisé de Stripe : le prof y saisit son IBAN et vérifie son identité (obligation légale). Le RIB est conservé par Stripe, jamais par Relais.</div>
+  <div class="card form-card">
+    <h1 class="page-title">Mes versements</h1>
+    <label class="field"><span>IBAN (simulation, non enregistré)</span><input value="FR76 •••• •••• •••• •••• •••• •••" disabled></label>
+    <form method="post" action="/simulation/versements">
+      <input type="hidden" name="_csrf" value="<%= csrf %>">
+      <button class="btn btn-mint btn-lg btn-block">Simuler la configuration du RIB</button>
+    </form>
+  </div>
+</section>
+<%- include('partials/footer') %>
