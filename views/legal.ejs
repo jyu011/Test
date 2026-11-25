@@ -1,0 +1,29 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow-wide prose">
+  <h1 class="page-title"><%= title %></h1>
+  <div class="flash flash-info">Page à compléter avant la mise en ligne publique : les éléments entre crochets [ ] doivent être remplacés par tes informations réelles.</div>
+  <% if (page === 'mentions') { %>
+    <h2>Éditeur du site</h2>
+    <p>[Nom ou raison sociale] – [Statut juridique] – [Adresse] – [SIRET] – Contact : [e-mail].</p>
+    <p>Directeur de la publication : [Nom].</p>
+    <h2>Hébergeur</h2>
+    <p>[Nom de l'hébergeur] – [Adresse] – [Site web].</p>
+  <% } else if (page === 'cgu') { %>
+    <h2>1. Objet</h2>
+    <p>Relais est une plateforme de mise en relation entre des élèves (ou leurs parents) et des étudiants proposant des cours particuliers. Relais n'est pas partie aux contrats conclus entre élèves et profs.</p>
+    <h2>2. Comptes</h2>
+    <p>Les profs doivent être étudiants, âgés d'au moins <%= C.MIN_TUTOR_AGE %> ans et fournir un justificatif de scolarité. Les élèves de moins de <%= C.PARENTAL_CONSENT_AGE %> ans doivent obtenir l'accord d'un parent.</p>
+    <h2>3. Messagerie et avis</h2>
+    <p>La messagerie doit être utilisée de façon respectueuse. Les avis doivent refléter une expérience réelle ; Relais peut supprimer tout contenu abusif.</p>
+    <h2>4. Tarifs et paiement</h2>
+    <p>[À compléter : paiement direct entre élève et prof, ou via la plateforme, commission éventuelle…]</p>
+  <% } else { %>
+    <h2>Données collectées</h2>
+    <p>Identité (nom, prénom, date de naissance), coordonnées (e-mail, téléphone facultatif, adresse), informations scolaires, messages échangés et avis. Pour les profs : justificatif de scolarité.</p>
+    <h2>Ce qui est public</h2>
+    <p>Pour les profs : prénom et initiale du nom, photo, études, matières, niveaux, tarif, ville et rayon de déplacement. Jamais l'adresse exacte, l'e-mail, le téléphone ni le justificatif. Les fiches élèves ne sont visibles que par les profs avec qui l'élève échange.</p>
+    <h2>Tes droits</h2>
+    <p>Tu peux modifier tes informations depuis « Mon compte » et supprimer ton compte à tout moment. Pour toute demande : [e-mail de contact].</p>
+  <% } %>
+</section>
+<%- include('partials/footer') %>

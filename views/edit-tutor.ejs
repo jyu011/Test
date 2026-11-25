@@ -1,0 +1,22 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow-wide">
+  <a href="/compte" class="back-link">← Mon compte</a>
+  <h1 class="page-title">Modifier mon profil</h1>
+  <%- include('partials/form-errors') %>
+  <form method="post" action="/compte/modifier?_csrf=<%= csrf %>" enctype="multipart/form-data" class="card form-card">
+    <%- include('partials/form-identity', { withPassword: false }) %>
+    <%- include('partials/form-tutor', { editing: true }) %>
+    <% if (photos.length) { %>
+      <fieldset class="form-section">
+        <legend>Photos actuelles</legend>
+        <div class="gallery gallery-edit">
+          <% photos.forEach(function (p) { %>
+            <label class="gallery-item"><img src="/uploads/<%= p.filename %>" alt=""><span class="check"><input type="checkbox" name="remove_photo" value="<%= p.id %>"><span>Supprimer</span></span></label>
+          <% }) %>
+        </div>
+      </fieldset>
+    <% } %>
+    <button class="btn btn-primary btn-lg btn-block" type="submit">Enregistrer</button>
+  </form>
+</section>
+<%- include('partials/footer') %>

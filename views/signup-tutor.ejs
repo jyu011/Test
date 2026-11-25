@@ -1,0 +1,14 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow-wide">
+  <a href="/devenir-prof" class="back-link">← Retour</a>
+  <h1 class="page-title">Devenir prof sur Relais</h1>
+  <p class="lead">Réservé aux étudiants (post-bac, <%= C.MIN_TUTOR_AGE %> ans minimum). Ton profil sera visible par les élèves dès que ton certificat de scolarité aura été vérifié, généralement sous 48 h.</p>
+  <%- include('partials/form-errors') %>
+  <form method="post" action="/inscription/prof?_csrf=<%= csrf %>" enctype="multipart/form-data" class="card form-card">
+    <%- include('partials/form-identity', { withPassword: true, legend: 'Tes informations' }) %>
+    <%- include('partials/form-tutor', { editing: false }) %>
+    <%- include('partials/form-cgu') %>
+    <button class="btn btn-mint btn-lg btn-block" type="submit">Envoyer ma candidature</button>
+  </form>
+</section>
+<%- include('partials/footer') %>

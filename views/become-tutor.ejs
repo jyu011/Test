@@ -1,0 +1,33 @@
+<%- include('partials/header') %>
+<section class="hero wrap">
+  <div class="hero-text">
+    <span class="pill pill-mint">Pour les étudiants</span>
+    <h1>Donne des cours près de chez toi, entre deux partiels.</h1>
+    <p class="lead">Tu fixes ton tarif, ton périmètre et tes niveaux. Les élèves te contactent via la messagerie de Relais. Et en expliquant, tu consolides toi-même ta spécialité.</p>
+    <a href="/inscription/prof" class="btn btn-mint btn-lg">Postuler comme prof</a>
+  </div>
+  <div class="hero-visual">
+    <div class="card checklist">
+      <h2 class="card-title">Ce qu'il te faut</h2>
+      <ul>
+        <li>Être étudiant post-bac (fac, école, prépa, BTS…)</li>
+        <li>Avoir au moins <%= C.MIN_TUTOR_AGE %> ans</li>
+        <li>Un certificat de scolarité de l'année en cours (PDF ou photo)</li>
+        <li>Une photo de profil</li>
+        <li>10 minutes pour rédiger ta présentation</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="band band-white">
+  <div class="wrap">
+    <h2 class="section-title">Comment ça se passe</h2>
+    <ol class="steps">
+      <li><span class="step-num c-mint">1</span><h3>Crée ton profil</h3><p>Études, matières, niveaux (primaire, collège, lycée), tarif et rayon de déplacement. Ton adresse exacte reste privée.</p></li>
+      <li><span class="step-num c-coral">2</span><h3>On vérifie</h3><p>On contrôle ton certificat de scolarité, puis ton profil devient visible par les élèves.</p></li>
+      <li><span class="step-num c-blue">3</span><h3>Reçois des demandes</h3><p>Les élèves t'écrivent via la messagerie. Tu vois leur fiche (classe, ville, besoins) avant de répondre.</p></li>
+    </ol>
+    <div class="center"><a href="/inscription/prof" class="btn btn-mint btn-lg">Je crée mon profil prof</a></div>
+  </div>
+</section>
+<%- include('partials/footer') %>

@@ -1,0 +1,5 @@
+<% if (locals.photo) { %>
+  <img class="avatar avatar-<%= size || 'md' %>" src="/uploads/<%= photo %>" alt="">
+<% } else { %>
+  <span class="avatar avatar-<%= size || 'md' %> avatar-initial" aria-hidden="true"><%= initial %></span>
+<% } %>

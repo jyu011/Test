@@ -1,0 +1,19 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow-wide">
+  <a href="/compte" class="back-link">← Retour</a>
+  <h1 class="page-title">Créer un compte élève</h1>
+  <p class="lead">Pour contacter des profs, échanger par messagerie et laisser des avis. Les profs que tu contactes verront une fiche avec ton prénom, ta classe, ta ville et tes besoins, jamais ton adresse.</p>
+  <%- include('partials/form-errors') %>
+  <form method="post" action="/inscription/eleve" class="card form-card" data-signup>
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <%- include('partials/form-identity', { withPassword: true, legend: 'Tes informations' }) %>
+    <%- include('partials/form-student') %>
+    <%- include('partials/form-cgu') %>
+    <button class="btn btn-coral btn-lg btn-block" type="submit">Créer mon compte</button>
+  </form>
+  <aside class="inline-cta">
+    <p><b>Tu es étudiant ?</b> Tu peux aussi donner des cours sur Relais.</p>
+    <a href="/inscription/prof" class="btn btn-mint">Créer un compte prof</a>
+  </aside>
+</section>
+<%- include('partials/footer') %>

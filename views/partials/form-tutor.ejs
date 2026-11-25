@@ -1,0 +1,76 @@
+<fieldset class="form-section">
+  <legend>Tes études</legend>
+  <div class="grid-2">
+    <label class="field"><span>Établissement *</span>
+      <input name="school" value="<%= v.school || '' %>" required maxlength="120" placeholder="Université Lyon 1, INSA, Sciences Po…"><%- fieldError(errors, 'school') %></label>
+    <label class="field"><span>Ville de l'établissement</span>
+      <input name="school_city" value="<%= v.school_city || '' %>" maxlength="80"></label>
+  </div>
+  <div class="grid-2">
+    <label class="field"><span>Domaine d'études *</span>
+      <input name="field_of_study" value="<%= v.field_of_study || '' %>" required maxlength="120" placeholder="Licence de mathématiques, Prépa MPSI…"><%- fieldError(errors, 'field_of_study') %></label>
+    <label class="field"><span>Année d'études *</span>
+      <select name="study_year" required>
+        <option value="">Choisir…</option>
+        <% C.STUDY_YEARS.forEach(function (y) { %><option <%= v.study_year === y ? 'selected' : '' %>><%= y %></option><% }) %>
+      </select><%- fieldError(errors, 'study_year') %></label>
+  </div>
+  <label class="field"><span>Certificat de scolarité ou preuve d'inscription <%= locals.editing ? '' : '*' %></span>
+    <input type="file" name="certificate" accept=".pdf,image/jpeg,image/png,image/webp" <%= locals.editing ? '' : 'required' %>>
+    <small><%= locals.editing ? "Envoyer un nouveau justificatif relance la vérification de ton profil." : "PDF ou photo, 5 Mo max. Il n'est jamais montré aux élèves : il sert uniquement à vérifier que tu es bien étudiant." %></small>
+    <%- fieldError(errors, 'certificate') %></label>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>Où donnes-tu cours ?</legend>
+  <p class="form-hint">Ton adresse exacte reste privée. Les élèves voient seulement ta ville et ton rayon de déplacement.</p>
+  <label class="field"><span>Adresse *</span>
+    <input name="address" value="<%= v.address || '' %>" required maxlength="200" autocomplete="street-address"><%- fieldError(errors, 'address') %></label>
+  <div class="grid-3">
+    <label class="field"><span>Code postal *</span>
+      <input name="postal_code" value="<%= v.postal_code || '' %>" required pattern="\d{5}" inputmode="numeric" maxlength="5" autocomplete="postal-code"><%- fieldError(errors, 'postal_code') %></label>
+    <label class="field"><span>Ville *</span>
+      <input name="city" value="<%= v.city || '' %>" required maxlength="80" autocomplete="address-level2"><%- fieldError(errors, 'city') %></label>
+    <label class="field"><span>Je me déplace jusqu'à (km) *</span>
+      <input type="number" name="radius_km" value="<%= v.radius_km ?? 5 %>" min="0" max="100" required><%- fieldError(errors, 'radius_km') %></label>
+  </div>
+  <div class="field"><span class="label">Formats proposés *</span>
+    <div class="check-row">
+      <% Object.entries(C.MODES).forEach(function ([k, l]) { %><label class="check"><input type="checkbox" name="modes" value="<%= k %>" <%= has(v.modes, k) ? 'checked' : '' %>><span><%= l %></span></label><% }) %>
+    </div><%- fieldError(errors, 'modes') %>
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>Ce que tu enseignes</legend>
+  <div class="field"><span class="label">Niveaux *</span>
+    <div class="check-row check-row-big">
+      <% Object.entries(C.LEVELS).forEach(function ([k, l]) { %><label class="check check-pill"><input type="checkbox" name="levels" value="<%= k %>" <%= has(v.levels, k) ? 'checked' : '' %>><span><%= l %></span></label><% }) %>
+    </div><%- fieldError(errors, 'levels') %>
+  </div>
+  <div class="field"><span class="label">Matières *</span>
+    <div class="check-grid">
+      <% C.SUBJECTS.forEach(function (s) { %><label class="check"><input type="checkbox" name="subjects" value="<%= s %>" <%= has(v.subjects, s) ? 'checked' : '' %>><span><%= s %></span></label><% }) %>
+    </div><%- fieldError(errors, 'subjects') %>
+  </div>
+  <label class="field field-narrow"><span>Tarif horaire (€) *</span>
+    <input type="number" name="hourly_rate" value="<%= v.hourly_rate || '' %>" min="5" max="150" required placeholder="20">
+    <small>Pour info, les étudiants demandent souvent entre 15 et 30 € / h selon le niveau.</small><%- fieldError(errors, 'hourly_rate') %></label>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>Ta présentation</legend>
+  <label class="field"><span>Phrase d'accroche *</span>
+    <input name="headline" value="<%= v.headline || '' %>" required minlength="10" maxlength="100" placeholder="Étudiante en maths, j'aide les collégiens à reprendre confiance">
+    <%- fieldError(errors, 'headline') %></label>
+  <label class="field"><span>Présentation * <em>(80 caractères minimum)</em></span>
+    <textarea name="description" rows="7" required minlength="80" maxlength="3000" placeholder="Parle de ton parcours, de ta façon d'expliquer, de ton expérience (aide aux devoirs, tutorat, colos…), et de ce qu'un élève peut attendre d'un cours avec toi."><%= v.description || '' %></textarea>
+    <%- fieldError(errors, 'description') %></label>
+  <label class="field"><span>Photo de profil <%= locals.editing ? '' : '*' %></span>
+    <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" <%= locals.editing ? '' : 'required' %>>
+    <small>Une photo de toi, souriante et bien éclairée. JPG, PNG ou WEBP, 5 Mo max.</small><%- fieldError(errors, 'photo') %></label>
+  <label class="field"><span>Autres photos <em>(facultatif, 4 max)</em></span>
+    <input type="file" name="gallery" accept="image/jpeg,image/png,image/webp" multiple>
+    <small>Ton lieu de cours, tes supports, ton campus…</small><%- fieldError(errors, 'gallery') %></label>
+  <%- fieldError(errors, 'files') %>
+</fieldset>

@@ -1,0 +1,27 @@
+<article class="tutor-card">
+  <a href="/profs/<%= t.user_id %>" class="tutor-card-link" aria-label="Voir le profil de <%= publicName(t) %>"></a>
+  <div class="tutor-card-top">
+    <%- include('avatar', { photo: t.photo, initial: initials(t), size: 'lg' }) %>
+    <div class="tutor-card-id">
+      <h3><%= publicName(t) %></h3>
+      <p class="muted"><%= t.field_of_study %> · <%= t.study_year %></p>
+      <p class="muted small"><%= t.school %></p>
+    </div>
+  </div>
+  <div class="level-badges">
+    <% levelLabels(t.levels).forEach(function (l) { %><span class="level-badge"><%= l %></span><% }) %>
+  </div>
+  <p class="tutor-card-headline"><%= t.headline %></p>
+  <div class="chips">
+    <% split(t.subjects).slice(0, 4).forEach(function (s) { %><span class="chip"><%= s %></span><% }) %>
+    <% if (split(t.subjects).length > 4) { %><span class="chip chip-more">+<%= split(t.subjects).length - 4 %></span><% } %>
+  </div>
+  <div class="tutor-card-meta">
+    <span class="meta-line"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg><%= t.city %> · <%= t.radius_km %> km</span>
+    <span class="meta-line"><%- include('stars', { rating: t.rating }) %> <% if (t.review_count) { %><b><%= String(t.rating).replace('.', ',') %></b> <span class="muted">(<%= t.review_count %>)</span><% } else { %><span class="muted">Nouveau</span><% } %></span>
+  </div>
+  <div class="tutor-card-foot">
+    <span class="price"><b><%= t.hourly_rate %> €</b> / h</span>
+    <span class="link-arrow">Voir le profil →</span>
+  </div>
+</article>

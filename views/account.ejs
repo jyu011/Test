@@ -1,0 +1,81 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight">
+  <h1 class="page-title">Bonjour <%= u.first_name %> !</h1>
+
+  <% if (u.role === 'prof') { %>
+    <% if (profile.status === 'en_attente') { %>
+      <div class="flash flash-info"><b>Profil en cours de vérification.</b> Nous vérifions ton certificat de scolarité. Ton profil sera visible par les élèves dès sa validation.</div>
+    <% } else if (profile.status === 'refuse') { %>
+      <div class="flash flash-error"><b>Profil non validé.</b> <%= profile.status_note || "Ton justificatif n'a pas pu être validé." %> Tu peux envoyer un nouveau certificat depuis « Modifier mon profil ».</div>
+    <% } else { %>
+      <div class="flash flash-success"><b>Profil vérifié et en ligne.</b> Les élèves peuvent te trouver et te contacter.</div>
+    <% } %>
+  <% } %>
+
+  <div class="dash-grid">
+    <div class="card dash-card">
+      <h2 class="card-title">Messagerie</h2>
+      <p class="big-number"><%= unread %></p>
+      <p class="muted">message<%= unread > 1 ? 's' : '' %> non lu<%= unread > 1 ? 's' : '' %> · <%= convCount %> conversation<%= convCount > 1 ? 's' : '' %></p>
+      <a href="/messages" class="btn btn-primary">Ouvrir la messagerie</a>
+    </div>
+
+    <% if (u.role === 'prof') { %>
+      <div class="card dash-card">
+        <h2 class="card-title">Ma fiche publique</h2>
+        <div class="meta-line"><%- include('partials/stars', { rating: stats.rating }) %> <% if (stats.n) { %><b><%= String(stats.rating).replace('.', ',') %></b> · <%= stats.n %> avis<% } else { %><span class="muted">Pas encore d'avis</span><% } %></div>
+        <p class="muted"><%= profile.hourly_rate %> € / h · <%= levelLabels(profile.levels).join(', ') %></p>
+        <a href="/profs/<%= u.id %>" class="btn btn-ghost">Voir ma fiche<%= profile.status !== 'verifie' ? ' (aperçu)' : '' %></a>
+      </div>
+    <% } else { %>
+      <div class="card dash-card">
+        <h2 class="card-title">Trouver un prof</h2>
+        <p class="muted">Classe : <%= profile.school_grade %> · <%= profile.city %></p>
+        <a href="/profs?<%= profile.school_grade && ['CP','CE1','CE2','CM1','CM2'].includes(profile.school_grade) ? 'niveau=primaire' : (['6e','5e','4e','3e'].includes(profile.school_grade) ? 'niveau=college' : (['Seconde','Première','Terminale'].includes(profile.school_grade) ? 'niveau=lycee' : '')) %>&lieu=<%= encodeURIComponent(profile.postal_code || '') %>" class="btn btn-coral">Profs près de chez moi</a>
+      </div>
+    <% } %>
+
+    <div class="card dash-card">
+      <h2 class="card-title">Mes informations</h2>
+      <dl class="info-list">
+        <dt>E-mail</dt><dd><%= u.email %></dd>
+        <dt>Nom</dt><dd><%= u.first_name %> <%= u.last_name %></dd>
+        <% if (u.role === 'prof') { %>
+          <dt>Études</dt><dd><%= profile.field_of_study %>, <%= profile.study_year %> – <%= profile.school %></dd>
+          <dt>Périmètre</dt><dd><%= profile.city %>, <%= profile.radius_km %> km</dd>
+        <% } else { %>
+          <dt>Compte</dt><dd><%= profile.account_type === 'parent' ? 'Parent de ' + profile.child_first_name : 'Élève' %></dd>
+          <dt>Ville</dt><dd><%= profile.postal_code %> <%= profile.city %></dd>
+        <% } %>
+      </dl>
+      <a href="/compte/modifier" class="btn btn-ghost">Modifier mon profil</a>
+    </div>
+  </div>
+
+  <div class="dash-grid dash-grid-2">
+    <details class="card">
+      <summary class="card-title">Changer mon mot de passe</summary>
+      <form method="post" action="/compte/mot-de-passe">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label class="field"><span>Mot de passe actuel</span><input type="password" name="current_password" required autocomplete="current-password"></label>
+        <label class="field"><span>Nouveau mot de passe (8 caractères min.)</span><input type="password" name="new_password" required minlength="8" autocomplete="new-password"></label>
+        <button class="btn btn-primary" type="submit">Modifier</button>
+      </form>
+    </details>
+    <details class="card">
+      <summary class="card-title">Supprimer mon compte</summary>
+      <p class="muted">Ton profil, tes messages et tes avis seront définitivement effacés.</p>
+      <form method="post" action="/compte/supprimer" data-confirm="Supprimer définitivement ton compte ?">
+        <input type="hidden" name="_csrf" value="<%= csrf %>">
+        <label class="field"><span>Confirme avec ton mot de passe</span><input type="password" name="password" required autocomplete="current-password"></label>
+        <button class="btn btn-danger" type="submit">Supprimer mon compte</button>
+      </form>
+    </details>
+  </div>
+
+  <form method="post" action="/deconnexion" class="center">
+    <input type="hidden" name="_csrf" value="<%= csrf %>">
+    <button class="btn btn-ghost" type="submit">Se déconnecter</button>
+  </form>
+</section>
+<%- include('partials/footer') %>

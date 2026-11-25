@@ -1,0 +1,49 @@
+<fieldset class="form-section">
+  <legend>Qui suit les cours ?</legend>
+  <div class="radio-cards">
+    <label class="radio-card"><input type="radio" name="account_type" value="eleve" <%= v.account_type !== 'parent' ? 'checked' : '' %> data-toggle-parent>
+      <span><b>Je suis l'élève</b><br><small>Je crée mon propre compte.</small></span></label>
+    <label class="radio-card"><input type="radio" name="account_type" value="parent" <%= v.account_type === 'parent' ? 'checked' : '' %> data-toggle-parent>
+      <span><b>Je suis un parent</b><br><small>Je crée le compte pour mon enfant.</small></span></label>
+  </div>
+  <div class="grid-2">
+    <label class="field" data-parent-only><span>Prénom de l'enfant *</span>
+      <input name="child_first_name" value="<%= v.child_first_name || '' %>" maxlength="60"><%- fieldError(errors, 'child_first_name') %></label>
+    <label class="field"><span>Classe de l'élève *</span>
+      <select name="school_grade" required>
+        <option value="">Choisir…</option>
+        <% C.SCHOOL_GRADES.forEach(function (g) { %><option <%= v.school_grade === g ? 'selected' : '' %>><%= g %></option><% }) %>
+      </select><%- fieldError(errors, 'school_grade') %></label>
+  </div>
+  <div class="minor-box" data-minor-only>
+    <p><b>Moins de 15 ans ?</b> La loi demande l'accord d'un parent pour créer un compte.</p>
+    <label class="field"><span>E-mail d'un parent *</span>
+      <input type="email" name="parent_email" value="<%= v.parent_email || '' %>" maxlength="160"><%- fieldError(errors, 'parent_email') %></label>
+    <label class="check"><input type="checkbox" name="parent_consent" value="1" <%= v.parent_consent ? 'checked' : '' %>>
+      <span>Mon parent est d'accord pour que je crée ce compte.</span></label><%- fieldError(errors, 'parent_consent') %>
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>Lieu de résidence</legend>
+  <p class="form-hint">Ton adresse n'est jamais affichée. Seuls la ville et le code postal sont montrés aux profs avec qui tu échanges.</p>
+  <label class="field"><span>Adresse <em>(facultatif)</em></span>
+    <input name="address" value="<%= v.address || '' %>" maxlength="200" autocomplete="street-address"></label>
+  <div class="grid-2">
+    <label class="field"><span>Code postal *</span>
+      <input name="postal_code" value="<%= v.postal_code || '' %>" required pattern="\d{5}" inputmode="numeric" maxlength="5" autocomplete="postal-code"><%- fieldError(errors, 'postal_code') %></label>
+    <label class="field"><span>Ville *</span>
+      <input name="city" value="<%= v.city || '' %>" required maxlength="80" autocomplete="address-level2"><%- fieldError(errors, 'city') %></label>
+  </div>
+</fieldset>
+
+<fieldset class="form-section">
+  <legend>Besoins</legend>
+  <div class="field"><span class="label">Matières recherchées</span>
+    <div class="check-grid">
+      <% C.SUBJECTS.forEach(function (s) { %><label class="check"><input type="checkbox" name="subjects" value="<%= s %>" <%= has(v.subjects, s) ? 'checked' : '' %>><span><%= s %></span></label><% }) %>
+    </div>
+  </div>
+  <label class="field"><span>Objectifs <em>(facultatif, visible par les profs que tu contactes)</em></span>
+    <textarea name="goals" rows="3" maxlength="1000" placeholder="Ex. : reprendre confiance en maths, préparer le brevet, rattraper un retard en anglais…"><%= v.goals || '' %></textarea></label>
+</fieldset>

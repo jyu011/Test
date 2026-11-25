@@ -1,0 +1,66 @@
+<%- include('partials/header') %>
+
+<section class="wrap section-tight">
+  <h1 class="page-title">Trouver un prof</h1>
+  <p class="lead">Tous les profs sont des étudiants dont le certificat de scolarité a été vérifié.</p>
+
+  <form class="filters" action="/profs" method="get">
+    <label><span>Matière</span>
+      <select name="matiere">
+        <option value="">Toutes</option>
+        <% SUBJECTS.forEach(function (s) { %><option <%= filters.subject === s ? 'selected' : '' %>><%= s %></option><% }) %>
+      </select>
+    </label>
+    <label><span>Niveau</span>
+      <select name="niveau">
+        <option value="">Tous</option>
+        <% Object.entries(LEVELS).forEach(function ([k, l]) { %><option value="<%= k %>" <%= filters.level === k ? 'selected' : '' %>><%= l %></option><% }) %>
+      </select>
+    </label>
+    <label><span>Ville ou code postal</span>
+      <input type="text" name="lieu" value="<%= filters.place %>" placeholder="Lyon, 69…">
+    </label>
+    <label><span>Format</span>
+      <select name="mode">
+        <option value="">Tous</option>
+        <% Object.entries(MODES).forEach(function ([k, l]) { %><option value="<%= k %>" <%= filters.mode === k ? 'selected' : '' %>><%= l %></option><% }) %>
+      </select>
+    </label>
+    <label><span>Prix max (€ / h)</span>
+      <input type="number" name="prix_max" min="5" max="150" step="1" value="<%= filters.maxPrice %>" placeholder="ex. 25">
+    </label>
+    <label><span>Trier par</span>
+      <select name="tri">
+        <option value="">Mieux notés</option>
+        <option value="prix" <%= filters.sort === 'prix' ? 'selected' : '' %>>Prix croissant</option>
+        <option value="prix_desc" <%= filters.sort === 'prix_desc' ? 'selected' : '' %>>Prix décroissant</option>
+        <option value="recent" <%= filters.sort === 'recent' ? 'selected' : '' %>>Nouveaux profs</option>
+      </select>
+    </label>
+    <div class="filters-actions">
+      <button type="submit" class="btn btn-primary">Filtrer</button>
+      <a href="/profs" class="btn btn-ghost">Réinitialiser</a>
+    </div>
+  </form>
+
+  <p class="result-count"><%= tutors.length %> prof<%= tutors.length > 1 ? 's' : '' %> trouvé<%= tutors.length > 1 ? 's' : '' %></p>
+
+  <% if (tutors.length) { %>
+    <div class="tutor-grid">
+      <% tutors.forEach(function (t) { %><%- include('partials/tutor-card', { t }) %><% }) %>
+    </div>
+  <% } else { %>
+    <div class="empty">
+      <h2>Aucun prof ne correspond pour l'instant</h2>
+      <p>Essaie d'élargir ta recherche (autre ville, autre niveau, prix plus élevé).</p>
+      <a href="/profs" class="btn btn-primary">Voir tous les profs</a>
+    </div>
+  <% } %>
+
+  <aside class="inline-cta">
+    <p><b>Tu es étudiant et tu veux donner des cours ?</b> Rejoins les profs de Relais.</p>
+    <a href="/inscription/prof" class="btn btn-mint">Postuler comme prof</a>
+  </aside>
+</section>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,12 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight narrow-wide">
+  <a href="/compte" class="back-link">← Mon compte</a>
+  <h1 class="page-title">Modifier mon profil</h1>
+  <%- include('partials/form-errors') %>
+  <form method="post" action="/compte/modifier?_csrf=<%= csrf %>" enctype="multipart/form-data" class="card form-card" data-signup>
+    <%- include('partials/form-identity', { withPassword: false }) %>
+    <%- include('partials/form-student') %>
+    <button class="btn btn-primary btn-lg btn-block" type="submit">Enregistrer</button>
+  </form>
+</section>
+<%- include('partials/footer') %>

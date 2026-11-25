@@ -1,0 +1,54 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight">
+  <h1 class="page-title">Administration</h1>
+  <div class="stat-row">
+    <div class="card stat"><b><%= counts.eleves %></b><span>élèves</span></div>
+    <div class="card stat"><b><%= counts.profs %></b><span>profs</span></div>
+    <div class="card stat"><b><%= counts.messages %></b><span>messages</span></div>
+    <div class="card stat"><b><%= counts.avis %></b><span>avis</span></div>
+  </div>
+
+  <h2 class="section-title-sm">Profs à vérifier et inscrits</h2>
+  <div class="table-wrap card">
+    <table class="table">
+      <thead><tr><th>Prof</th><th>Études</th><th>Âge</th><th>Inscrit le</th><th>Certificat</th><th>Statut</th><th>Action</th></tr></thead>
+      <tbody>
+        <% tutors.forEach(function (t) { %>
+          <tr>
+            <td><a href="/profs/<%= t.user_id %>"><%= t.first_name %> <%= t.last_name %></a><br><span class="muted small"><%= t.email %></span></td>
+            <td><%= t.field_of_study %>, <%= t.study_year %><br><span class="muted small"><%= t.school %></span></td>
+            <td><%= ageFrom(t.birth_date) %> ans</td>
+            <td><%= frDate(t.created_at) %></td>
+            <td><% if (t.certificate) { %><a href="/admin/certificat/<%= t.user_id %>" target="_blank" rel="noopener">Ouvrir</a><% } else { %>—<% } %></td>
+            <td><span class="status status-<%= t.status %>"><%= { en_attente: 'En attente', verifie: 'Vérifié', refuse: 'Refusé' }[t.status] %></span></td>
+            <td>
+              <form method="post" action="/admin/profs/<%= t.user_id %>/statut" class="admin-actions">
+                <input type="hidden" name="_csrf" value="<%= csrf %>">
+                <input name="note" placeholder="Motif si refus" maxlength="300" aria-label="Motif" value="<%= t.status_note || '' %>">
+                <button class="btn btn-mint btn-sm" name="status" value="verifie">Valider</button>
+                <button class="btn btn-danger btn-sm" name="status" value="refuse">Refuser</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 class="section-title-sm">Derniers avis (modération)</h2>
+  <div class="table-wrap card">
+    <table class="table">
+      <thead><tr><th>Prof</th><th>Élève</th><th>Note</th><th>Commentaire</th><th></th></tr></thead>
+      <tbody>
+        <% reviews.forEach(function (r) { %>
+          <tr>
+            <td><%= r.p_first %> <%= r.p_last %></td><td><%= r.s_first %> <%= r.s_last %></td><td><%= r.rating %>/5</td><td><%= r.comment %></td>
+            <td><form method="post" action="/admin/avis/<%= r.id %>/supprimer" data-confirm="Supprimer cet avis ?"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-ghost btn-sm">Supprimer</button></form></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+  <form method="post" action="/deconnexion" class="center"><input type="hidden" name="_csrf" value="<%= csrf %>"><button class="btn btn-ghost">Se déconnecter</button></form>
+</section>
+<%- include('partials/footer') %>

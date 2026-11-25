@@ -1,0 +1,26 @@
+<fieldset class="form-section">
+  <legend><%= locals.legend || 'Tes informations' %></legend>
+  <div class="grid-2">
+    <label class="field"><span>Prénom *</span>
+      <input name="first_name" value="<%= v.first_name || '' %>" required maxlength="60" autocomplete="given-name"><%- fieldError(errors, 'first_name') %></label>
+    <label class="field"><span>Nom *</span>
+      <input name="last_name" value="<%= v.last_name || '' %>" required maxlength="60" autocomplete="family-name">
+      <small>Seule l'initiale est affichée publiquement.</small><%- fieldError(errors, 'last_name') %></label>
+  </div>
+  <div class="grid-2">
+    <label class="field"><span>Adresse e-mail *</span>
+      <input type="email" name="email" value="<%= v.email || '' %>" required maxlength="160" autocomplete="email"><%- fieldError(errors, 'email') %></label>
+    <label class="field"><span>Téléphone <em>(facultatif, jamais affiché)</em></span>
+      <input type="tel" name="phone" value="<%= v.phone || '' %>" maxlength="20" autocomplete="tel" placeholder="06 12 34 56 78"><%- fieldError(errors, 'phone') %></label>
+  </div>
+  <label class="field field-narrow"><span>Date de naissance *</span>
+    <input type="date" name="birth_date" value="<%= v.birth_date || '' %>" required autocomplete="bday" data-age-check><%- fieldError(errors, 'birth_date') %></label>
+  <% if (locals.withPassword) { %>
+  <div class="grid-2">
+    <label class="field"><span>Mot de passe * <em>(8 caractères minimum)</em></span>
+      <input type="password" name="password" required minlength="8" autocomplete="new-password"><%- fieldError(errors, 'password') %></label>
+    <label class="field"><span>Confirmer le mot de passe *</span>
+      <input type="password" name="password_confirm" required minlength="8" autocomplete="new-password"><%- fieldError(errors, 'password_confirm') %></label>
+  </div>
+  <% } %>
+</fieldset>

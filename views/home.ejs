@@ -1,0 +1,114 @@
+<%- include('partials/header') %>
+
+<section class="hero wrap">
+  <div class="hero-text">
+    <span class="pill pill-mint">Cours particuliers donnés par des étudiants</span>
+    <h1>Ils étaient à ta place il y a deux ans. Ils t'expliquent.</h1>
+    <p class="lead">Relais met en relation les élèves, du primaire au lycée, avec des étudiants vérifiés près de chez eux. Le programme est encore frais dans leur tête, ils sont motivés, et ils approfondissent leur matière en l'enseignant.</p>
+    <form class="search-bar" action="/profs" method="get" role="search">
+      <label class="search-field">
+        <span>Matière</span>
+        <select name="matiere">
+          <option value="">Toutes les matières</option>
+          <% SUBJECTS.forEach(function (s) { %><option><%= s %></option><% }) %>
+        </select>
+      </label>
+      <label class="search-field">
+        <span>Niveau</span>
+        <select name="niveau">
+          <option value="">Tous</option>
+          <% Object.entries(C.LEVELS).forEach(function ([k, l]) { %><option value="<%= k %>"><%= l %></option><% }) %>
+        </select>
+      </label>
+      <label class="search-field">
+        <span>Ville ou code postal</span>
+        <input type="text" name="lieu" placeholder="Lyon, 69003…" autocomplete="address-level2">
+      </label>
+      <button type="submit" class="btn btn-coral btn-lg">Rechercher</button>
+    </form>
+    <p class="hero-sub">Tu es étudiant ? <a href="/inscription/prof">Deviens prof sur Relais →</a></p>
+  </div>
+
+  <div class="hero-visual">
+    <% if (featured.length) { const t = featured[0]; %>
+      <div class="hero-card-label">Un des profs de Relais</div>
+      <%- include('partials/tutor-card', { t }) %>
+    <% } else { %>
+      <div class="hero-logo"><%- include('partials/logo') %></div>
+    <% } %>
+  </div>
+</section>
+
+<section class="band band-white">
+  <div class="wrap">
+    <h2 class="section-title">Pourquoi un étudiant plutôt qu'un prof classique ?</h2>
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon bg-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"></path></svg></div>
+        <h3>Le programme encore frais</h3>
+        <p>Ils ont passé le brevet et le bac il y a peu. Ils connaissent les pièges, les méthodes qui marchent et ce qu'on attend aujourd'hui.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19V5l8 4 8-4v14l-8 4-8-4z"></path><path d="M12 9v14"></path></svg></div>
+        <h3>Des spécialistes en devenir</h3>
+        <p>Ils étudient leur matière tous les jours à la fac ou en école. Enseigner les fait encore progresser, et ça se ressent dans leurs explications.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"></path></svg></div>
+        <h3>Sérieux et motivés</h3>
+        <p>Ces cours financent leurs études : ils ont tout intérêt à être ponctuels, bien préparés et à faire progresser leurs élèves.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"></circle><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5"></path><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.2.5 3.5 2.4 3.5 5.5"></path></svg></div>
+        <h3>Proches de leurs élèves</h3>
+        <p>Peu d'écart d'âge : ils parlent le même langage, comprennent la pression des notes et donnent souvent un vrai coup de motivation.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3v18M17 7.5c0-1.9-2.2-3-5-3s-5 1.2-5 3.2c0 4.8 10 2.3 10 7.3 0 2-2.2 3.5-5 3.5s-5-1.3-5-3.3"></path></svg></div>
+        <h3>Des tarifs accessibles</h3>
+        <p>Chaque étudiant fixe son prix, généralement plus doux que celui des organismes classiques. Pas d'abonnement côté élève.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path><path d="M9 12l2 2 4-4"></path></svg></div>
+        <h3>Des profils vérifiés</h3>
+        <p>Chaque prof fournit un certificat de scolarité, contrôlé avant que son profil soit visible. Les avis viennent uniquement d'élèves qui l'ont contacté.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="comment" class="wrap section">
+  <h2 class="section-title">Comment ça marche</h2>
+  <ol class="steps">
+    <li><span class="step-num c-mint">1</span><h3>Cherche</h3><p>Filtre par matière, niveau (primaire, collège, lycée) et ville. Compare les profils, les tarifs et les avis.</p></li>
+    <li><span class="step-num c-coral">2</span><h3>Échange</h3><p>Écris à l'étudiant via la messagerie sécurisée de Relais pour présenter tes besoins et caler un premier cours. Tes coordonnées restent privées.</p></li>
+    <li><span class="step-num c-blue">3</span><h3>Progresse</h3><p>Premier cours, puis suivi régulier. Laisse un avis pour aider les autres élèves à trouver le bon prof.</p></li>
+  </ol>
+  <div class="center"><a class="btn btn-primary btn-lg" href="/profs">Voir les profs disponibles<% if (count) { %> (<%= count %>)<% } %></a></div>
+</section>
+
+<% if (featured.length > 1) { %>
+<section class="band band-white">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 class="section-title">Quelques profs de Relais</h2>
+      <a href="/profs" class="link-arrow">Tous les profs →</a>
+    </div>
+    <div class="tutor-grid">
+      <% featured.forEach(function (t) { %><%- include('partials/tutor-card', { t }) %><% }) %>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<section class="wrap section">
+  <div class="cta-band">
+    <div>
+      <h2>Tu es étudiant ? Passe le relais.</h2>
+      <p>Crée ton profil, fixe ton tarif et ton périmètre, et donne des cours près de chez toi entre deux partiels.</p>
+    </div>
+    <a href="/inscription/prof" class="btn btn-mint btn-lg">Postuler comme prof</a>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

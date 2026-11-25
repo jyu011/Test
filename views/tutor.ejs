@@ -1,0 +1,138 @@
+<%- include('partials/header') %>
+
+<div class="wrap section-tight">
+  <% if (preview) { %>
+    <div class="flash flash-info">Aperçu : ce profil n'est pas encore visible par les élèves (statut : <%= tutor.status === 'refuse' ? 'refusé' : 'en attente de vérification' %>).</div>
+  <% } %>
+  <a href="/profs" class="back-link">← Retour aux profs</a>
+
+  <div class="profile-layout">
+    <div class="profile-main">
+      <section class="card profile-head">
+        <%- include('partials/avatar', { photo: tutor.photo, initial: initials(tutor), size: 'xl' }) %>
+        <div class="profile-id">
+          <h1><%= publicName(tutor) %></h1>
+          <p class="profile-study"><%= tutor.field_of_study %> · <%= tutor.study_year %></p>
+          <p class="muted"><%= tutor.school %><%= tutor.school_city ? ', ' + tutor.school_city : '' %></p>
+          <div class="meta-line">
+            <%- include('partials/stars', { rating: tutor.rating }) %>
+            <% if (tutor.review_count) { %><b><%= String(tutor.rating).replace('.', ',') %></b> <a href="#avis"><%= tutor.review_count %> avis</a><% } else { %><span class="muted">Pas encore d'avis</span><% } %>
+          </div>
+          <% if (tutor.status === 'verifie') { %>
+            <span class="verified"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 12l5 5L20 6"></path></svg>Certificat de scolarité vérifié</span>
+          <% } %>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title">Niveaux enseignés</h2>
+        <div class="level-badges level-badges-lg">
+          <% Object.entries(C.LEVELS).forEach(function ([k, l]) { const on = split(tutor.levels).includes(k); %>
+            <span class="level-badge <%= on ? '' : 'level-off' %>"><% if (on) { %>✓ <% } %><%= l %></span>
+          <% }) %>
+        </div>
+        <h2 class="card-title">Matières</h2>
+        <div class="chips"><% split(tutor.subjects).forEach(function (s) { %><span class="chip"><%= s %></span><% }) %></div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><%= tutor.headline %></h2>
+        <div class="prose"><% tutor.description.split(/\n+/).forEach(function (p) { %><p><%= p %></p><% }) %></div>
+      </section>
+
+      <% if (photos.length) { %>
+      <section class="card">
+        <h2 class="card-title">Photos</h2>
+        <div class="gallery">
+          <% photos.forEach(function (p) { %><a href="/uploads/<%= p.filename %>" target="_blank" rel="noopener"><img src="/uploads/<%= p.filename %>" alt="Photo partagée par <%= tutor.first_name %>" loading="lazy"></a><% }) %>
+        </div>
+      </section>
+      <% } %>
+
+      <section class="card" id="avis">
+        <h2 class="card-title">Avis des élèves</h2>
+        <% if (reviews.length) { %>
+          <div class="review-summary">
+            <div class="review-score">
+              <b><%= String(tutor.rating).replace('.', ',') %></b>
+              <%- include('partials/stars', { rating: tutor.rating }) %>
+              <span class="muted"><%= reviews.length %> avis</span>
+            </div>
+            <div class="review-bars">
+              <% stars.forEach(function (s) { %>
+                <div class="review-bar"><span><%= s.n %> ★</span><progress max="<%= reviews.length %>" value="<%= s.count %>"></progress><span class="muted"><%= s.count %></span></div>
+              <% }) %>
+            </div>
+          </div>
+          <ul class="reviews">
+            <% reviews.forEach(function (r) { %>
+              <li class="review">
+                <div class="review-head">
+                  <%- include('partials/avatar', { photo: null, initial: initials(r), size: 'sm' }) %>
+                  <div><b><%= publicName(r) %></b><br><span class="muted small"><%= frDate(r.created_at) %></span></div>
+                  <%- include('partials/stars', { rating: r.rating }) %>
+                </div>
+                <p><%= r.comment %></p>
+              </li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <p class="muted">Aucun avis pour l'instant. Les avis ne peuvent être laissés que par des élèves ayant échangé avec <%= tutor.first_name %>.</p>
+        <% } %>
+
+        <% if (canReview) { %>
+          <form class="review-form" method="post" action="/profs/<%= tutor.user_id %>/avis">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <h3><%= myReview ? 'Modifier ton avis' : 'Laisser un avis' %></h3>
+            <fieldset class="rating-input">
+              <legend>Ta note</legend>
+              <% [5, 4, 3, 2, 1].forEach(function (n) { %>
+                <input type="radio" id="note-<%= n %>" name="rating" value="<%= n %>" <%= myReview && myReview.rating === n ? 'checked' : '' %> required>
+                <label for="note-<%= n %>" title="<%= n %> étoile<%= n > 1 ? 's' : '' %>">★<span class="sr-only"><%= n %> sur 5</span></label>
+              <% }) %>
+            </fieldset>
+            <label class="field"><span>Ton commentaire</span>
+              <textarea name="comment" rows="4" minlength="10" maxlength="1500" required placeholder="Comment se passent les cours ? Qu'est-ce qui t'a aidé ?"><%= myReview ? myReview.comment : '' %></textarea>
+            </label>
+            <button class="btn btn-primary" type="submit">Publier l'avis</button>
+          </form>
+        <% } %>
+      </section>
+    </div>
+
+    <aside class="profile-side">
+      <div class="card sticky" id="contact">
+        <div class="price price-lg"><b><%= tutor.hourly_rate %> €</b> / heure</div>
+        <ul class="facts">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+            <div><b>Périmètre d'action</b><br><%= tutor.city %> (<%= tutor.postal_code.slice(0, 2) %>) et jusqu'à <%= tutor.radius_km %> km autour</div></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"></rect><path d="M8 21h8"></path></svg>
+            <div><b>Formats</b><br><%= modeLabels(tutor.modes).join(' · ') %></div></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"></path><path d="M6 11v5c3 2 9 2 12 0v-5"></path></svg>
+            <div><b>Études</b><br><%= tutor.field_of_study %>, <%= tutor.study_year %><br><span class="muted"><%= tutor.school %></span></div></li>
+        </ul>
+
+        <% if (!user) { %>
+          <p class="muted small">Connecte-toi avec un compte élève pour écrire à <%= tutor.first_name %>.</p>
+          <a class="btn btn-coral btn-block" href="/inscription/eleve">Créer un compte élève</a>
+          <a class="btn btn-ghost btn-block" href="/connexion">J'ai déjà un compte</a>
+        <% } else if (user.role !== 'eleve') { %>
+          <p class="muted small">Seuls les comptes élèves peuvent contacter un prof.</p>
+        <% } else if (conversation) { %>
+          <a class="btn btn-coral btn-block" href="/messages/<%= conversation.id %>">Ouvrir la conversation</a>
+        <% } else if (!preview) { %>
+          <form method="post" action="/profs/<%= tutor.user_id %>/contacter" class="contact-form">
+            <input type="hidden" name="_csrf" value="<%= csrf %>">
+            <label class="field"><span>Écrire à <%= tutor.first_name %></span>
+              <textarea name="body" rows="5" maxlength="2000" required>Bonjour <%= tutor.first_name %>, je cherche des cours de … pour un niveau … . Seriez-vous disponible ?</textarea>
+            </label>
+            <button class="btn btn-coral btn-block" type="submit">Envoyer le message</button>
+          </form>
+        <% } %>
+        <p class="secure-note"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Messagerie sécurisée : tes coordonnées ne sont jamais partagées.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

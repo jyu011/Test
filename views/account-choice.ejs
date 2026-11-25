@@ -1,0 +1,24 @@
+<%- include('partials/header') %>
+<section class="wrap section-tight">
+  <h1 class="page-title center">Mon compte</h1>
+  <p class="lead center">Connecte-toi, ou crée ton compte en moins de 5 minutes.</p>
+  <div class="choice-grid">
+    <a class="choice-card" href="/inscription/eleve">
+      <div class="feature-icon bg-mint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"></path><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"></path></svg></div>
+      <h2>Je cherche un prof</h2>
+      <p>Compte élève ou parent : contacte des étudiants, échange par messagerie et laisse des avis.</p>
+      <span class="btn btn-coral">Créer un compte élève</span>
+    </a>
+    <a class="choice-card" href="/inscription/prof">
+      <div class="feature-icon bg-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5z"></path><path d="M6 11v5c3 2 9 2 12 0v-5"></path></svg></div>
+      <h2>Je veux donner des cours</h2>
+      <p>Compte prof, réservé aux étudiants : présente ton parcours, fixe ton tarif et reçois des demandes.</p>
+      <span class="btn btn-mint">Créer un compte prof</span>
+    </a>
+  </div>
+  <div class="card login-inline">
+    <h2>Déjà inscrit ?</h2>
+    <a class="btn btn-primary" href="/connexion">Se connecter</a>
+  </div>
+</section>
+<%- include('partials/footer') %>
